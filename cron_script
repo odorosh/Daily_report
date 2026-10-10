@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Create log of scriot result
+exec >> /pathtoproject/cron_output.log 2>&1
+
+echo "--- Begining of script: $(date) ---"
+/usr/bin/python /pathtoproject/larnaca_open_meteo_sqlite.py
+/usr/bin/python /pathtoproject/plot_data_sqlite.py
+/usr/bin/python /pathtoproject/make_tex.py
+echo "--- ENd of script: $(date) ---"
