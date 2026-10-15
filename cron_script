@@ -1,10 +1,34 @@
 #!/bin/bash
 
-# Create log of scriot result
-exec >> /pathtoproject/cron_output.log 2>&1
+dat=$(date +%d_%m_%Y)
+# Make log of the script
+exec >> "/pathtoproject/cron_output_$dat.log" 2>&1
 
-echo "--- Begining of script: $(date) ---"
-/usr/bin/python /pathtoproject/larnaca_open_meteo_sqlite.py
-/usr/bin/python /pathtoproject/plot_data_sqlite.py
-/usr/bin/python /pathtoproject/make_tex.py
-echo "--- ENd of script: $(date) ---"
+MAX_ATTEMPTS=5
+PAUSE=60 # time to wait until next attempt
+
+# Function that repeat command if it returns an error
+run_with_retry() {
+    for attempt in $(seq 1 $MAX_ATTEMPTS); do
+        "$@" && return 0  # If success go out of the function
+
+        echo "Сommand error : '$*'. Unsuccessful attempt $attempt on $MAX_ATTEMPTS." >&2
+        [ $attempt -lt $MAX_ATTEMPTS ] && sleep $PAUSE
+    done
+    return 1 # If all attempts fail
+}
+
+# --------- Main part of the script ---------
+echo "--- Start: $dat ---"
+
+
+echo "Script larnaca_open_meteo_sqlite.py"
+run_with_retry /usr/bin/python /pathtoproject/larnaca_open_meteo_sqlite.py || exit 1
+
+echo "Script plot_data_sqlite.py"
+run_with_retry /usr/bin/python /pathtoproject/plot_data_sqlite.py || exit 1
+
+echo "Script make_tex.py"
+run_with_retry /usr/bin/python /pathtoproject/make_tex.py || exit 1
+
+echo "--- Finish: $dat ---"
