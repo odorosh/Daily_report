@@ -49,5 +49,14 @@ The system will now run seamlessly in the background and produce your report dai
 
 ## 🎨 Assets & Credits
 
-* **Weather Icons:** The graphical weather markers located in the `icons/` directory were generated using Google's [Noto Color Emoji](https://github.com) font (specifically the `Noto-COLRv1.ttf` format). 
-* **License:** Noto Color Emoji is licensed under the [SIL Open Font License, Version 1.1](https://sil.org). You are free to use these assets in accordance with the license terms.
+* **Weather Icons:** The graphical weather markers located in the `icons/` directory were generated using Google's [Noto Color Emoji](https://github.com) font.
+* **Icon Generation:** If you want to see how these icons were made or regenerate them using a different font size/format, check out the auxiliary utility script in the repository:
+  ```bash
+  python tools/generate_icons.py
+  ```
+* **License:** Noto Color Emoji is licensed under the [SIL Open Font License, Version 1.1](https://sil.org).
+
+
+## 🤖 AI Collaboration
+
+This repository was co-authored and optimized in collaboration with an **AI Assistant**. The artificial intelligence contributed to refactoring the codebase, enhancing system reliability, and structuring the technical documentation to meet industry standards.
