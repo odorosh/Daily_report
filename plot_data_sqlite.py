@@ -9,7 +9,8 @@ generated_images = []
 
 # "Agg" rendering engine as its backend, to avoid errors in graphics in Linux
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -22,14 +23,14 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 # ==========================================
 # 1. Reading data from SQLITE with PANDAS
 # ==========================================
-db_path =os.path.join(base_dir, "pogoda_larnaca.db")
+db_path = os.path.join(base_dir, "pogoda_larnaca.db")
 conn = sqlite3.connect(db_path)
 
 # Request to DB. Sorting by data
 query = "SELECT data_pomiaru, temp_powietrza, wilgotnosc,  sila_wiatru, kierunek_wiatru, stopien_zachmurzenia, kod_pogody, temp_morza FROM pogoda_i_morze ORDER BY data_pomiaru;"
 
 # Pandas converts column 'data_pomiaru' to data format
-df = pd.read_sql_query(query, conn, parse_dates=['data_pomiaru'])
+df = pd.read_sql_query(query, conn, parse_dates=["data_pomiaru"])
 conn.close()
 
 if df.empty:
@@ -37,7 +38,7 @@ if df.empty:
     exit()
 
 # Date is an index
-df.set_index('data_pomiaru', inplace=True)
+df.set_index("data_pomiaru", inplace=True)
 
 
 # ==========================================
@@ -45,7 +46,9 @@ df.set_index('data_pomiaru', inplace=True)
 # ==========================================
 # Make continius series of the dates in DB
 #
-full_index = pd.date_range(start=df.index.max() - pd.Timedelta(days=14), end=df.index.max(), freq='D')
+full_index = pd.date_range(
+    start=df.index.max() - pd.Timedelta(days=14), end=df.index.max(), freq="D"
+)
 
 print(f"df.index.min() = {df.index.min()}")
 print(f"df.index.max() = {df.index.max()}")
@@ -63,11 +66,20 @@ fig, ax1 = plt.subplots(figsize=(14, 9))
 
 
 # Main pltot of air temperature (for absent data - NaN)
-ax1.plot(df.index, df['temp_powietrza'], color='#d32f2f', marker='o', markersize=5, linewidth=2, label='Temperature (°C)')
+ax1.plot(
+    df.index,
+    df["temp_powietrza"],
+    color="#d32f2f",
+    marker="o",
+    markersize=5,
+    linewidth=2,
+    label="Temperature (°C)",
+)
+
 
 # Function to put color icons on the plot
 def wklej_ikone_pogody(ax, data_x, temp_y, wmo_code):
-    icon_path = base_dir+f"/icons/{wmo_code}.png"
+    icon_path = base_dir + f"/icons/{wmo_code}.png"
     print("icon_path = ", icon_path)
     if os.path.exists(icon_path):
         img = plt.imread(icon_path)
@@ -77,41 +89,48 @@ def wklej_ikone_pogody(ax, data_x, temp_y, wmo_code):
         ab = AnnotationBbox(imagebox, (data_x, temp_y + 1.5), frameon=False)
         ax.add_artist(ab)
 
+
 # Iterating through rows and applying icons
 for date, row in df.iterrows():
-    if pd.notna(row['temp_powietrza']) and pd.notna(row['kod_pogody']):
-        wklej_ikone_pogody(ax1, date, row['temp_powietrza'], int(row['kod_pogody']))
+    if pd.notna(row["temp_powietrza"]) and pd.notna(row["kod_pogody"]):
+        wklej_ikone_pogody(ax1, date, row["temp_powietrza"], int(row["kod_pogody"]))
 
 # Formatting the top panel
 ax1.set_xlabel("Date", fontsize=12, labelpad=10)
-ax1.set_ylabel('Temperatura (°C)', fontsize=11, fontweight='bold')
-ax1.set_title('Weather raport (color icons from Noto Color Emoji)', fontsize=14, fontweight='bold', pad=15)
-ax1.grid(True, linestyle=':', alpha=0.6)
-ax1.legend(loc='upper left')
+ax1.set_ylabel("Temperatura (°C)", fontsize=11, fontweight="bold")
+ax1.set_title(
+    "Weather raport (color icons from Noto Color Emoji)",
+    fontsize=14,
+    fontweight="bold",
+    pad=15,
+)
+ax1.grid(True, linestyle=":", alpha=0.6)
+ax1.legend(loc="upper left")
 
 # Important: We are increasing the upper limit of the Y-axis so that the icons are not cut off by the chart frame.
-ax1.set_ylim(df['temp_powietrza'].min() - 5, df['temp_powietrza'].max() + 5)
-
+ax1.set_ylim(df["temp_powietrza"].min() - 5, df["temp_powietrza"].max() + 5)
 
 
 # Formatting the timeline (X-axis) for both panels
-plt.xticks(df.index, df.index.strftime('%d.%m\n%a'), rotation=0, ha='center')
+plt.xticks(df.index, df.index.strftime("%d.%m\n%a"), rotation=0, ha="center")
 
 # Automatic adjustment and saving to a file
 plt.tight_layout()
 
-output_file = os.path.join(base_dir, 'Larnaca_Ait_temp_'+df.index.min().strftime('%Y-%m-%d')+'_'+df.index.max().strftime('%Y-%m-%d')+'.pdf')
+output_file = os.path.join(
+    base_dir,
+    "Larnaca_Ait_temp_"
+    + df.index.min().strftime("%Y-%m-%d")
+    + "_"
+    + df.index.max().strftime("%Y-%m-%d")
+    + ".pdf",
+)
 caption = "Weather chart."
 
-generated_images.append({
-    "path": output_file,
-    "caption": caption
-})
+generated_images.append({"path": output_file, "caption": caption})
 
 plt.savefig(output_file)
 print(f"Success! The chart with colored icons has been saved as '{output_file}'.")
-
-
 
 
 # ==========================================
@@ -123,7 +142,14 @@ fig, ax1 = plt.subplots(figsize=(10, 6))
 
 # 1. Plot cloud cover as bar charts (using the first axis, ax1)
 color_cloud = "#a1c4fd"  # soft blue
-bars = ax1.bar(df.index, df["stopien_zachmurzenia"], color=color_cloud, alpha=0.7, label="Cloudness (%)", width=0.5, )
+bars = ax1.bar(
+    df.index,
+    df["stopien_zachmurzenia"],
+    color=color_cloud,
+    alpha=0.7,
+    label="Cloudness (%)",
+    width=0.5,
+)
 
 # Left Y-axis settings (for cloud cover)
 ax1.set_xlabel("Date", fontsize=14, labelpad=10)
@@ -143,7 +169,14 @@ print("df[stopien_zachmurzenia] = ", df["stopien_zachmurzenia"])
 
 # Plot humidity as a line (using the second axis, ax2)
 color_humidity = "#2af598"  # greenish-blue
-(line,) = ax2.plot( df.index, df["wilgotnosc"], color=color_humidity, linewidth=2.5, marker="o",  label="Humidity (%)",)
+(line,) = ax2.plot(
+    df.index,
+    df["wilgotnosc"],
+    color=color_humidity,
+    linewidth=2.5,
+    marker="o",
+    label="Humidity (%)",
+)
 
 # Configuring the right Y-axis (for humidity)
 ax2.set_ylabel("Relative humidity (%)", color="#10b981", fontsize=12)
@@ -156,25 +189,34 @@ labels = [l.get_label() for l in lines_labels]
 ax1.legend(lines_labels, labels, loc="upper left", fontsize=10)
 
 # Settings general appearance
-plt.title("Plot of cloudness and humidity", fontsize=14, fontweight="bold", pad=15,)
+plt.title(
+    "Plot of cloudness and humidity",
+    fontsize=14,
+    fontweight="bold",
+    pad=15,
+)
 ax1.grid(True, axis="y", linestyle="--", alpha=0.3)
 
 # Formatowanie osi czasu (X) dla obu paneli
-plt.xticks(df.index, df.index.strftime('%d.%m\n%a'), rotation=0, ha='center')
+plt.xticks(df.index, df.index.strftime("%d.%m\n%a"), rotation=0, ha="center")
 
 # Automatic element alignment and display
 plt.tight_layout()
 
 # Save the picture to the file
-output_file = os.path.join(base_dir, 'Larnaca_humidity_cloud_'+df.index.min().strftime('%Y-%m-%d')+'_'+df.index.max().strftime('%Y-%m-%d')+'.pdf')
+output_file = os.path.join(
+    base_dir,
+    "Larnaca_humidity_cloud_"
+    + df.index.min().strftime("%Y-%m-%d")
+    + "_"
+    + df.index.max().strftime("%Y-%m-%d")
+    + ".pdf",
+)
 
 caption = "Cloudness and humidity."
 
 # Save the information about file to json
-generated_images.append({
-    "path": output_file,
-    "caption": caption
-})
+generated_images.append({"path": output_file, "caption": caption})
 
 
 plt.savefig(output_file)
@@ -231,19 +273,22 @@ plt.title("Classic wind rose for 15 days", va="bottom", pad=20)
 # Automatic adjustment and saving to a high-quality file
 plt.tight_layout()
 
-output_file = os.path.join(base_dir, 'Larnaca_wind_rose_'+df.index.min().strftime('%Y-%m-%d')+'_'+df.index.max().strftime('%Y-%m-%d')+'.pdf')
+output_file = os.path.join(
+    base_dir,
+    "Larnaca_wind_rose_"
+    + df.index.min().strftime("%Y-%m-%d")
+    + "_"
+    + df.index.max().strftime("%Y-%m-%d")
+    + ".pdf",
+)
 
 caption = "Wind rose."
 
-generated_images.append({
-    "path": output_file,
-    "caption": caption
-})
+generated_images.append({"path": output_file, "caption": caption})
 
 
 plt.savefig(output_file)
 print(f"Success! The chart with colored icons has been saved as '{output_file}'.")
-
 
 
 # ==========================================
@@ -253,35 +298,46 @@ fig, ax1 = plt.subplots(figsize=(14, 6))
 
 
 # Main temperature line (will be interrupted at gaps, thanks to NaN)
-ax1.plot(df.index, df['temp_morza'], color='#000080', marker='o', markersize=5, linewidth=2, label='Temperature (°C)')
+ax1.plot(
+    df.index,
+    df["temp_morza"],
+    color="#000080",
+    marker="o",
+    markersize=5,
+    linewidth=2,
+    label="Temperature (°C)",
+)
 
 
 # Formatting the top panel
 ax1.set_xlabel("Date", fontsize=14, labelpad=10)
-ax1.set_ylabel('Sea water temperature (°C)', fontsize=14, fontweight='bold')
-#ax1.set_title('Automatic weather raport', fontsize=14, fontweight='bold', pad=15)
-ax1.grid(True, linestyle=':', alpha=0.6)
-ax1.legend(loc='upper left')
+ax1.set_ylabel("Sea water temperature (°C)", fontsize=14, fontweight="bold")
+# ax1.set_title('Automatic weather raport', fontsize=14, fontweight='bold', pad=15)
+ax1.grid(True, linestyle=":", alpha=0.6)
+ax1.legend(loc="upper left")
 
 # Important: We are increasing the upper limit of the Y-axis so that the icons are not cut off by the chart frame.
-ax1.set_ylim(df['temp_morza'].min() - 5, df['temp_morza'].max() + 5)
-
+ax1.set_ylim(df["temp_morza"].min() - 5, df["temp_morza"].max() + 5)
 
 
 # Formatting the timeline (X-axis) for both panels
-plt.xticks(df.index, df.index.strftime('%d.%m\n%a'), rotation=0, ha='center')
+plt.xticks(df.index, df.index.strftime("%d.%m\n%a"), rotation=0, ha="center")
 
 # Automatic adjustment and saving to a high-quality file
 plt.tight_layout()
 
-output_file = os.path.join(base_dir, 'Larnaca_Sea_temp_'+df.index.min().strftime('%Y-%m-%d')+'_'+df.index.max().strftime('%Y-%m-%d')+'.pdf')
+output_file = os.path.join(
+    base_dir,
+    "Larnaca_Sea_temp_"
+    + df.index.min().strftime("%Y-%m-%d")
+    + "_"
+    + df.index.max().strftime("%Y-%m-%d")
+    + ".pdf",
+)
 
 caption = "Plot of sea temperature."
 
-generated_images.append({
-    "path": output_file,
-    "caption": caption
-})
+generated_images.append({"path": output_file, "caption": caption})
 
 
 plt.savefig(output_file)

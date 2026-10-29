@@ -20,8 +20,7 @@ URL_WEATHER = f"https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&longi
 URL_MARINE = f"https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&longitude={LONGITUDE}&current=sea_surface_temperature,wave_height"
 
 
-
-#"""Adds a new row to an existing database."""
+# """Adds a new row to an existing database."""
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
@@ -36,22 +35,22 @@ dane_morza = odpowiedz_morze["current"]
 
 # We are inserting another record into the existing table.
 cursor.execute(
-"""
+    """
 INSERT INTO pogoda_i_morze (data_zapisu, data_pomiaru, godzina_pomiaru, temp_powietrza, wilgotnosc, sila_wiatru, kierunek_wiatru, stopien_zachmurzenia, kod_pogody, temp_morza, wysokosc_fali)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """,
-(
-    teraz,
-    dane_pogody["time"][:10],               # data_pomiaru
-    dane_pogody["time"][11:],               # godzina_pomiaru
-    dane_pogody["temperature_2m"],          # temp_powietrza
-    dane_pogody["relative_humidity_2m"],    # wilgotnosc
-    dane_pogody['wind_speed_10m'],          # sila_wiatru
-    dane_pogody['wind_direction_10m'],      # kierunek_wiatru
-    dane_pogody['cloud_cover'],             # stopien_zachmurzenia
-    dane_pogody["weather_code"],            # kod_pogody
-    dane_morza["sea_surface_temperature"],  # temp_morza
-    dane_morza['wave_height']               # wysokosc_fali
+    (
+        teraz,
+        dane_pogody["time"][:10],  # data_pomiaru
+        dane_pogody["time"][11:],  # godzina_pomiaru
+        dane_pogody["temperature_2m"],  # temp_powietrza
+        dane_pogody["relative_humidity_2m"],  # wilgotnosc
+        dane_pogody["wind_speed_10m"],  # sila_wiatru
+        dane_pogody["wind_direction_10m"],  # kierunek_wiatru
+        dane_pogody["cloud_cover"],  # stopien_zachmurzenia
+        dane_pogody["weather_code"],  # kod_pogody
+        dane_morza["sea_surface_temperature"],  # temp_morza
+        dane_morza["wave_height"],  # wysokosc_fali
     ),
 )
 
