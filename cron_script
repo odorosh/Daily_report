@@ -1,34 +1,46 @@
 #!/bin/bash
 
-dat=$(date +%d_%m_%Y)
-# Make log of the script
-exec >> "/pathtoproject/cron_output_$dat.log" 2>&1
+# 1. Set the base project directory (change this path to your actual one)
+PROJECT_DIR="/pathtoproject"
+
+# We navigate to the project directory so that the Python scripts look for the database in the correct location.
+cd "$PROJECT_DIR" || exit 1
+
+# 2. Formatting the date (hours and minutes added for the exact start time in the logs)
+START_TIME=$(date +"%d_%m_%Y %H:%M:%S")
+LOG_DATE=$(date +"%d_%m_%Y")
+
+# 3. Redirect all logs to a file
+exec >> "$PROJECT_DIR/cron_output_$LOG_DATE.log" 2>&1
 
 MAX_ATTEMPTS=5
-PAUSE=60 # time to wait until next attempt
+PAUSE=60
 
-# Function that repeat command if it returns an error
+# Function for next try
 run_with_retry() {
-    for attempt in $(seq 1 $MAX_ATTEMPTS); do
-        "$@" && return 0  # If success go out of the function
+    for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+        "$@" && return 0
 
-        echo "Сommand error : '$*'. Unsuccessful attempt $attempt on $MAX_ATTEMPTS." >&2
-        [ $attempt -lt $MAX_ATTEMPTS ] && sleep $PAUSE
+        echo "[ERROR] Command failed: '$*'. Attempt $attempt/$MAX_ATTEMPTS." >&2
+        [ "$attempt" -lt "$MAX_ATTEMPTS" ] && sleep "$PAUSE"
     done
-    return 1 # If all attempts fail
+    return 1
 }
 
 # --------- Main part of the script ---------
-echo "--- Start: $dat ---"
+echo "=========================================="
+echo "--- Start: $START_TIME ---"
 
+# We use variables and quotation marks to handle paths containing spaces safely.
+echo "Running larnaca_open_meteo_sqlite.py..."
+run_with_retry /usr/bin/python "$PROJECT_DIR/larnaca_open_meteo_sqlite.py" || exit 1
 
-echo "Script larnaca_open_meteo_sqlite.py"
-run_with_retry /usr/bin/python /pathtoproject/larnaca_open_meteo_sqlite.py || exit 1
+echo "Running plot_data_sqlite.py..."
+run_with_retry /usr/bin/python "$PROJECT_DIR/plot_data_sqlite.py" || exit 1
 
-echo "Script plot_data_sqlite.py"
-run_with_retry /usr/bin/python /pathtoproject/plot_data_sqlite.py || exit 1
+echo "Running make_tex.py..."
+run_with_retry /usr/bin/python "$PROJECT_DIR/make_tex.py" || exit 1
 
-echo "Script make_tex.py"
-run_with_retry /usr/bin/python /pathtoproject/make_tex.py || exit 1
-
-echo "--- Finish: $dat ---"
+END_TIME=$(date +"%d_%m_%Y %H:%M:%S")
+echo "--- Finish: $END_TIME ---"
+echo "=========================================="
