@@ -45,3 +45,9 @@ To generate the report automatically every day, configure the system cron daemon
    ```
 
 The system will now run seamlessly in the background and produce your report daily.
+
+
+## 🎨 Assets & Credits
+
+* **Weather Icons:** The graphical weather markers located in the `icons/` directory were generated using Google's [Noto Color Emoji](https://github.com) font (specifically the `Noto-COLRv1.ttf` format). 
+* **License:** Noto Color Emoji is licensed under the [SIL Open Font License, Version 1.1](https://sil.org). You are free to use these assets in accordance with the license terms.
