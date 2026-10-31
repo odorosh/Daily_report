@@ -3,8 +3,15 @@ import os
 import sys
 from datetime import datetime
 
-# 1. Спроба імпорту PyLaTeX (динамічне додавання шляхів, якщо потрібно)
-LOCAL_SITE_PACKAGES = os.path.expanduser("~/.local/lib/python3.14/site-packages")
+
+# Dynamically retrieve the major.minor version (e.g., "3.14" or "3.12")
+python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+LOCAL_SITE_PACKAGES = os.path.expanduser(f"~/.local/lib/python{python_version}/site-packages")
+
+if os.path.exists(LOCAL_SITE_PACKAGES) and LOCAL_SITE_PACKAGES not in sys.path:
+    sys.path.append(LOCAL_SITE_PACKAGES)
+
+# Attempting to import PyLaTeX (dynamically adding paths if necessary)
 if os.path.exists(LOCAL_SITE_PACKAGES) and LOCAL_SITE_PACKAGES not in sys.path:
     sys.path.append(LOCAL_SITE_PACKAGES)
 
